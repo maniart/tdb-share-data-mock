@@ -15,7 +15,7 @@ app.use(function(req, res, next) {
   next();
 });
 
-app.get('*', function(req, res) {
+app.get('/', function(req, res) {
 	var id = random(0, data.length),
 		record = data[id],
 		email_expires = record.estimated_expires;
@@ -30,18 +30,19 @@ app.get('*', function(req, res) {
 
 	record.total = record['twitter_key'] + record['facebook_key'] + record['email_key'];
 
-	console.log('-----------------------------------------------------------------------------------------------------------------------------------------------\n', record);
 	res.send(record);	
 
 });
 
 app.post('/sharestats/', function(req, res) {
-	var records = [];
-	_(10).times(function() {
-		records.push(data[random(0, data.length)]);
+	var records = [],
+		paths = req.body.paths;
+	
+	_(paths).each(function(path) {
+		records.push(_(data).findWhere({path: path}));
 	});
-	console.log('Requested ids \n', req.body.ids, ' Records: ', records);
-	res.json(req.body.records);
+	console.log(records);
+	res.json(records);
 });
 
 app.listen(3000);
