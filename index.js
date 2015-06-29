@@ -1,11 +1,14 @@
 var express = require('express');
 var data = require('./data/shares.json');
+var bodyParser = require('body-parser');
+var _ = require('underscore');
 var app = express();
 
 function random(min, max) {
 	return Math.floor(Math.random() * (max - min) + min);
 }
 
+app.use(bodyParser.json());
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -25,14 +28,20 @@ app.get('*', function(req, res) {
 	delete record.estimated_key;
 	delete record.estimated_expires;
 
-	var total = record.total = record['twitter_key'] + record['facebook_key'] + record['email_key'];
+	record.total = record['twitter_key'] + record['facebook_key'] + record['email_key'];
 
-	record.facebook_percentage = record.facebook_key / total * 100 || 0;
-	record.twitter_percentage = record.twitter_key / total * 100 || 0;
-	record.email_percentage = record.email_key / total * 100 || 0;
-	//console.log('-----------------------------------------------------------------------------------------------------------------------------------------------\n', record);
-	res.send(record);
+	console.log('-----------------------------------------------------------------------------------------------------------------------------------------------\n', record);
+	res.send(record);	
 
+});
+
+app.post('/sharestats/', function(req, res) {
+	var records = [];
+	_(10).times(function() {
+		records.push(data[random(0, data.length)]);
+	});
+	console.log('Requested ids \n', req.body.ids, ' Records: ', records);
+	res.json(req.body.records);
 });
 
 app.listen(3000);
