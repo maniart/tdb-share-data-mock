@@ -8,18 +8,8 @@ function random(min, max) {
 	return Math.floor(Math.random() * (max - min) + min);
 }
 
-app.use(bodyParser.json());
-app.use(function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  next();
-});
-
-app.get('/', function(req, res) {
-	var id = random(0, data.length),
-		record = data[id],
-		email_expires = record.estimated_expires;
-	
+function prepare(record) {
+	var email_expires = record.estimated_expires;
 	record.twitter_key = record.twitter_key || 0;
 	record.facebook_key = record.facebook_key || 0;
 	record.email_key = record.estimated_key || 0;
@@ -29,8 +19,22 @@ app.get('/', function(req, res) {
 	delete record.estimated_expires;
 
 	record.total = record['twitter_key'] + record['facebook_key'] + record['email_key'];
+	return record;
 
-	res.send(record);	
+}
+
+app.use(bodyParser.json());
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
+
+app.get('/', function(req, res) {
+	var id = random(0, data.length),
+		record = data[id];
+
+	res.json(prepare(record));	
 
 });
 
@@ -39,9 +43,11 @@ app.post('/sharestats/', function(req, res) {
 		paths = req.body.paths;
 	
 	_(paths).each(function(path) {
-		records.push(_(data).findWhere({path: path}));
+		records.push(prepare(_(data).findWhere({path: path})));
 	});
-	console.log(records);
+
+	console.log('----------------------------------------\n', records);
+
 	res.json(records);
 });
 
